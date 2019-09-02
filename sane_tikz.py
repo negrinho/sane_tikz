@@ -1185,6 +1185,7 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 # - draw patterns by copying a figure and putting it into multiple places or by calling a function.
 # or by distributing a set of existing figures on a grid.
 # - TODO: write the commit id that generated the figure in the file.
+# - TODO: potentially move formatting to a single file.
 
 # - ask for donations (*)
 
