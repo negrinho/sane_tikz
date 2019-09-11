@@ -1,4 +1,3 @@
-import sane_tikz as stz
 import math
 
 
@@ -15,7 +14,7 @@ def fill_color(color_name):
 
 
 def line_and_fill_colors(line_color_name, fill_color_name):
-    return combine_tikz_strs([fill_color(color_name), no_line()])
+    return combine_tikz_strs([fill_color(line_color_name), line_color(fill_color_name)])
 
 
 def fill_color_with_no_line(color_name):
@@ -31,7 +30,7 @@ def rounded_corners(radius_in_cm):
 
 
 def line_color(color_name):
-    return "color=%s" % color_name
+    return "draw=%s" % color_name
 
 
 def no_line():
@@ -40,12 +39,6 @@ def no_line():
 
 def no_fill():
     return "fill=none"
-
-
-def line_and_fill_colors(line_color_name, fill_color_name):
-    return combine_tikz_strs(
-        [line_color(line_color_name),
-         fill_color(fill_color_name)])
 
 
 def fill_opacity(alpha):
@@ -82,13 +75,32 @@ def text_width(width_in_cm):
     return "text width=%fcm" % width_in_cm
 
 
-def orientation(angle):
-    return "rotation=%f" % angle
+def orientation(angle_in_degrees):
+    return "rotate=%f" % angle_in_degrees
 
 
 def alignment(s):
-    assert s == "center" or s == "left" or s == "right"
+    valid_opts = {"center", "left", "right"}
+    assert s in valid_opts
     return "align=%s" % s
+
+
+# down, left, right,
+# north, south, west, east,
+# north east, north west, south east, south west
+def anchor(s):
+    valid_opts = [
+        "left_center", "right_center", "top_center", "bottom_center",
+        "top_left", "top_right", "bottom_left", "bottom_right"
+    ]
+    assert s in valid_opts
+
+    tikz_opts = [
+        "west", "east", "north", "south",
+        "north west", "north east", "south west", "south east"
+    ]
+
+    return "anchor=%s" % tikz_opts[valid_opts.index(s)]
 
 standard_line_width = 1.0 / 64
 
@@ -128,8 +140,10 @@ def tint_color(rgb, alpha):
 # You should have received a copy of the CC0 legalcode along with this
 # work.  If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
 
+
 def gray_colormap():
     return [(i, i, i) for i in range(256)]
+
 
 def magma_colormap():
     return [

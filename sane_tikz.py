@@ -1,20 +1,16 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import math
 from copy import deepcopy
 from pprint import pprint
-import formatting as fmt
 
 #### overview
-# - all angles in degrees unless started otherwise.
-# - all dimensions are going to be cm (even for line width).
+# - all angles in degrees unless stated otherwise.
+# - all dimensions in cm (even for line width).
+# cs = [x, y], vec = [start_cs, end_cs]
 
 # nice constants:
 golden_ratio = 1.61803398875
-
-# TODO: have a few more reference latex and tikz dimensions. (like linewidths)
-# see latex reference below.
 
 #### auxiliary functions for color and dimension conversions
 
@@ -43,10 +39,6 @@ def hex_to_rgb(color_in_hex):
     raise NotImplementedError
 
 
-### NOTE: I can define a few auxiliary functions to help working with latex.
-
-
-# cs = [x, y], vec = [start_cs, end_cs]
 #### for coordinates and vectors
 def midway_coords(start_cs, end_cs):
     return [
@@ -170,8 +162,7 @@ def rotate_vector(vec, axis_cs, angle):
 
 def ortogonal_vector(vec):
     start_cs, end_cs = vec
-    mid = midway_coords(cs, other_cs)
-    return rotate_coords(other_cs, mid, 90.0)
+    return [start_cs, rotate_coords(end_cs, start_cs, 90.0)]
 
 
 def reflect_coords_horizontally(cs, axis_x):
@@ -179,7 +170,7 @@ def reflect_coords_horizontally(cs, axis_x):
 
 
 def reflect_coords_vertically(cs, axis_y):
-    return (cs[0], -(cs[1] - axis_y) + axis_x)
+    return (cs[0], -(cs[1] - axis_y) + axis_y)
 
 
 def reflect_vector_horizontally(vec, axis_x):
@@ -198,23 +189,23 @@ def reflect_vector_vertically(vec, axis_y):
     ]
 
 
-def reflect_coords_wrt_vector(cs, vec):
-    start_cs, end_cs = vec
+# def reflect_coords_wrt_vector(cs, vec):
+#     start_cs, end_cs = vec
 
-    delta_x, delta_y = start_cs
-    out_cs = translate_coords(cs, -delta_x, -delta_y)
-    # NOTE: this is unfinished.
-    raise NotImplementedError
-    out_cs = translate(out_cs, delta_x, delta_y)
-    return out_cs
+#     delta_x, delta_y = start_cs
+#     out_cs = translate_coords(cs, -delta_x, -delta_y)
+#     # NOTE: this is unfinished.
+#     raise NotImplementedError
+#     out_cs = translate(out_cs, delta_x, delta_y)
+#     return out_cs
 
 
-def reflect_vector_wrt_vector(vec, axis_vec):
-    start_cs, end_cs = vec
-    return [
-        reflect_coords_wrt_vector(start_cs, axis_vec),
-        reflect_coords_wrt_vector(end_cs, axis_vec)
-    ]
+# def reflect_vector_wrt_vector(vec, axis_vec):
+#     start_cs, end_cs = vec
+#     return [
+#         reflect_coords_wrt_vector(start_cs, axis_vec),
+#         reflect_coords_wrt_vector(end_cs, axis_vec)
+#     ]
 
 
 def x_difference(vec):
@@ -239,12 +230,12 @@ def y_length(vec):
 
 def length(vec):
     start_cs, end_cs = vec
-    return sqrt.sqrt(
+    return math.sqrt(
         x_length([start_cs, end_cs])**2 + y_length([start_cs, end_cs])**2)
 
 
 def scale_to_length(vec):
-    pass
+    raise NotImplementedError
 
 
 def rotate_coords(cs, axis_cs, angle):
@@ -299,8 +290,11 @@ def bbox(e):
     elif e["type"] == "latex":
         return [e["cs"], e["cs"]]
 
+    elif e["type"] == "image":
+        return [e["top_left_cs"], translate_coords(e["top_left_cs"], e["width"], -e["height"])]
+
     else:
-        raise NotImplementedError
+        raise ValueError("bbox not implemented for element: %s." % e["type"])
 
     return b_out
 
@@ -344,6 +338,54 @@ def translate(e, delta_x, delta_y):
     elif e["type"] == "latex":
         e["cs"] = translate_coords(e["cs"], delta_x, delta_y)
 
+    elif e["type"] == "image":
+        e["top_left_cs"] = translate_coords(e["top_left_cs"], delta_x, delta_y)
+    else:
+        raise ValueError("tranlate not implemented for element: %s." % e["type"])
+
+# NOTE: this will move the center of the element. translate to get the appropriate
+# center.
+# TODO: test this function. this remains untested.
+def scale(e, alpha):
+    if isinstance(e, list):
+        assert len(e) > 0
+        for e_i in e:
+            scale(e_i, alpha)
+
+    elif e["type"] == 'open_path':
+        e["cs_lst"] = [scale_coords(cs, alpha) for cs in e["cs_lst"]
+        ]
+
+    elif e["type"] == 'closed_path':
+        e["cs_lst"] = [scale_coords(cs, alpha) for cs in e["cs_lst"]
+        ]
+
+    elif e["type"] == "circle":
+        e["center_cs"] = scale_coords(e["center_cs"], alpha)
+        e["radius"] *= alpha
+
+    elif e["type"] == 'ellipse':
+        e["center_cs"] = scale_coords(e["center_cs"], alpha)
+        e["horizontal_radius"] *= alpha
+
+    elif e["type"] == 'bezier':
+        e["from_cs"] = scale_coords(e["from_cs"], alpha)
+        e["to_cs"] = scale_coords(e["to_cs"], alpha)
+        e["c1_cs"] = scale_coords(e["c1_cs"], alpha)
+        e["c2_cs"] = scale_coords(e["c2_cs"], alpha)
+
+    elif e["type"] == "latex":
+        e["cs"] = scale_coords(e["cs"], alpha)
+
+    elif e["type"] == "image":
+        e["top_left_cs"] = scale_coords(e["top_left_cs"], alpha)
+        e["width"] *= alpha
+        e["height"] *= alpha
+    else:
+        raise ValueError("scale not implemented for element: %s." % e["type"])
+
+def scale_coords(cs, alpha):
+    return [alpha * x for x in cs]
 
 def translate_horizontally(e, delta):
     translate(e, delta, 0)
@@ -405,7 +447,7 @@ def translate_bbox_left_center_to_coords(e, cs):
 
 
 def translate_bbox_right_center_to_coords(e, cs):
-    top_left_cs, right_bottom_cs = bbox(e)
+    top_left_cs, bottom_right_cs = bbox(e)
     top_center_cs = top_center_coords(top_left_cs, bottom_right_cs)
     translate_to_coords(e, top_center_cs, cs)
 
@@ -437,6 +479,12 @@ def place_to_the_right(e, e_ref, spacing):
     delta = (x_ref - x) + spacing
     translate_horizontally(e, delta)
 
+# place with functions (flexible!)
+def place_relative_to_at_angle_with_fns(e, e_ref, fn, fn_ref, out_angle, spacing):
+    cs_ref = fn_ref(*bbox(e_ref))
+    cs_to = coords_on_circle(cs_ref, spacing, out_angle)
+    cs_from = fn(*bbox(e))
+    translate_to_coords(e, cs_from, cs_to)
 
 # place above
 def place_above_and_align_to_the_left(e, e_ref, spacing):
@@ -819,8 +867,6 @@ def circular_arc(center_cs, radius, start_angle, end_angle, tikz_str=""):
 
 def equilateral_triangle(center_cs, radius, starting_angle, tikz_str=""):
     cs_lst = equispaced_coords_on_circle(center_cs, radius, 3)
-    print "here:", cs_lst
-
     cs_lst = [rotate_coords(cs, center_cs, starting_angle) for cs in cs_lst]
     print cs_lst
     return closed_path(cs_lst, tikz_str)
@@ -836,6 +882,17 @@ def polygon(center_cs, radius, num_sides, tikz_str=""):
 
 def latex(cs, expr, tikz_str=""):
     return {"type": "latex", "cs": cs, "expr": expr, "tikz_str": tikz_str}
+
+
+def image(filepath, top_left_cs, height, width, tikz_str=""):
+    return {
+        "type": "image",
+        "filepath": filepath,
+        "top_left_cs": top_left_cs,
+        "height": height,
+        "width": width,
+        "tikz_str": tikz_str
+    }
 
 
 def horizontal_guidelines(top_left_cs, bottom_right_cs, spacing, tikz_str=""):
@@ -884,19 +941,6 @@ def vertical_ticks(start_cs, num_ticks, tick_spacing, tick_delta, tikz_str=""):
     ]
 
 
-# NOTE: this seems to be centered right now.
-def image(filepath, top_left_cs, height, width, tikz_str=""):
-    center_cs = translate_coords(top_left_cs, width / 2.0, -height / 2.0)
-    return {
-        "type": "image",
-        "filepath": filepath,
-        "center_cs": center_cs,
-        "height": height,
-        "width": width,
-        "tikz_str": tikz_str
-    }
-
-
 ### helper functions for placing coords
 
 
@@ -913,12 +957,26 @@ def equispaced_coords_on_circle(center_cs, radius, n):
 def coords_on_ellipse(center_cs, horizontal_radius, vertical_radius, angle):
     raise NotImplementedError
 
+def are_coords_inside_rectangle(cs, top_left_cs, bottom_right_cs):
+    return (top_left_cs[0] <= cs[0] and cs[0] <= bottom_right_cs[0] and
+        bottom_right_cs[1] <= cs[1] and cs[1] <= top_left_cs[1])
 
-def coords_on_rectangle(center_cs, top_left_cs, bottom_right_cs, angle):
-    # NOTE: this can be implemented by computing angles and partitioning.
-    # the arrows may need to do be done correctly.
-    raise NotImplementedError
+def coords_on_rectangle(top_left_cs, bottom_right_cs, angle):
+    center_cs = midway_coords(top_left_cs, bottom_right_cs)
+    end_cs = coords_on_circle(center_cs, 1.0, angle)
+    top_right_cs = top_right_coords(top_left_cs, bottom_right_cs)
+    delta_angle = vector_to_angle([center_cs, top_right_cs])
 
+    # return coords depending on the side it falls in.
+    if (angle >= 0 and angle <= delta_angle) or (angle >= 360.0 - delta_angle):
+        cs = coords_on_line_with_x_value(center_cs, end_cs, bottom_right_cs[0])
+    elif angle > delta_angle and angle <= 180.0 - delta_angle:
+        cs = coords_on_line_with_y_value(center_cs, end_cs, top_left_cs[1])
+    elif angle > 180.0 - delta_angle and angle <= 180 + delta_angle:
+        cs = coords_on_line_with_x_value(center_cs, end_cs, top_left_cs[0])
+    elif angle > 180.0 + delta_angle and angle <= 360.0 - delta_angle:
+        cs = coords_on_line_with_y_value(center_cs, end_cs, bottom_right_cs[1])
+    return cs
 
 # t in [0, 1]. for symmetric curves, it should be 0.5 for the middle
 def coords_on_bezier(from_cs, to_cs, c1_cs, c2_cs, t):
@@ -955,9 +1013,9 @@ def coords_on_line_with_y_value(start_cs, end_cs, y):
         # horizontal line.
         raise ValueError
     else:
-        m = (y1 - y2) / float(x1 - x2)
-        b = y1 - m * x1
-        x = (y - b) / m
+        m = (x1 - x2) / float(y1 - y2)
+        b = x1 - m * y1
+        x = m * y + b
     return [x, y]
 
 
@@ -985,54 +1043,55 @@ def draw_to_tikz(e):
 
     elif e["type"] == 'open_path':
         cmd_lst.append(
-            "\draw[%s] " % e["tikz_str"] +
+            "\\draw[%s] " % e["tikz_str"] +
             " -- ".join(["(%f, %f)" % tuple(cs) for cs in e["cs_lst"]]) + ";")
 
     elif e["type"] == 'closed_path':
         # print e
         cmd_lst.append(
-            "\draw[%s] " % e["tikz_str"] +
+            "\\draw[%s] " % e["tikz_str"] +
             " -- ".join(["(%f, %f)" % (cs[0], cs[1]) for cs in e["cs_lst"]]) +
             " -- cycle;")
 
     elif e["type"] == "circle":
         cmd_lst.append(
-            "\draw[%s] (%f, %f) circle (%f);" %
+            "\\draw[%s] (%f, %f) circle (%f);" %
             (e["tikz_str"], e["center_cs"][0], e["center_cs"][1], e["radius"]))
 
     elif e["type"] == 'ellipse':
-        cmd_lst.append("\draw[%s] (%f, %f) ellipse (%f and %f);" %
+        cmd_lst.append("\\draw[%s] (%f, %f) ellipse (%f and %f);" %
                        (e["tikz_str"], e["center_cs"][0], e["center_cs"][1],
                         e["horizontal_radius"], e["vertical_radius"]))
 
     elif e["type"] == "bezier":
         cmd_lst.append(
-            "\draw[%s] (%f, %f) .. controls (%f, %f) and (%f, %f) .. (%f, %f);"
+            "\\draw[%s] (%f, %f) .. controls (%f, %f) and (%f, %f) .. (%f, %f);"
             % tuple([e["tikz_str"]] + e["from_cs"] + e["c1_cs"] + e["c2_cs"] +
                     e["to_cs"]))
 
     elif e["type"] == "circular_arc":
-        cmd_lst.append("\draw[%s] (%f,%f) arc (%f:%f:%f);" %
+        cmd_lst.append("\\draw[%s] (%f,%f) arc (%f:%f:%f);" %
                        (e["tikz_str"], e["center_cs"][0], e["center_cs"][1],
                         e["start_angle"], e["end_angle"], e["radius"]))
 
     elif e["type"] == "elliptical_arc":
-        cmd_lst.append("\draw[%s] (%f,%f) arc (%f:%f:%f and %f);" %
+        cmd_lst.append("\\draw[%s] (%f,%f) arc (%f:%f:%f and %f);" %
                        (e["tikz_str"], e["center_cs"][0], e["center_cs"][1],
                         e["start_angle"], e["end_angle"],
-                        e["horizontal_radius", e["vertical_radius"]]))
+                        e["horizontal_radius"], e["vertical_radius"]))
 
     elif e["type"] == "latex":
         cmd_lst.append("\\node[%s] at (%f,%f) {%s};" %
                        (e["tikz_str"], e["cs"][0], e["cs"][1], e["expr"]))
 
     elif e["type"] == "image":
+        center_cs = translate_coords(e["top_left_cs"], e["width"] / 2.0, -e["height"] / 2.0)
         cmd_lst.append(
             "\\node[inner sep=0pt, %s] at (%f,%f) {\\includegraphics[height=%f, width=%f]{%s}};"
-            % (e["tikz_str"], e["center_cs"][0], e["center_cs"][1], e["height"],
+            % (e["tikz_str"], center_cs[0], center_cs[1], e["height"],
                e["width"], e["filepath"]))
     else:
-        raise ValueError("Unknown element to draw: %s" % e["type"])
+        raise ValueError("draw not implemented for element: %s" % e["type"])
 
     return cmd_lst
 
@@ -1186,6 +1245,14 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 # or by distributing a set of existing figures on a grid.
 # - TODO: write the commit id that generated the figure in the file.
 # - TODO: potentially move formatting to a single file.
+# TODO: have a few more reference latex and tikz dimensions. (like linewidths)
+# - TODO: rename to place_relative_to_top_and_align_center; place_relative_to_top
+# - https://www.overleaf.com/learn/latex/Page_size_and_margins ; likely useful for slides.
+# TODO: using other fonts. make it easy to add fonts in the package.
+# https://tug.org/FontCatalogue/
+# http://www.sascha-frank.com/latex-font-size.html
+# https://tug.org/TUGboat/tb33-3/tb105thurnherr.pdf
+# TODO: do GIFs.
 
 # - ask for donations (*)
 
@@ -1193,3 +1260,6 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 # TODO: draw a bar plot with no lines.
 # TODO: discrete ...
 # TODO: think about the model.
+
+# http://iamvdo.me/en/blog/css-font-metrics-line-height-and-vertical-align#lets-talk-about-font-size-first
+# TODO: check about font size.
