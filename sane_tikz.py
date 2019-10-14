@@ -199,7 +199,6 @@ def reflect_vector_vertically(vec, axis_y):
 #     out_cs = translate(out_cs, delta_x, delta_y)
 #     return out_cs
 
-
 # def reflect_vector_wrt_vector(vec, axis_vec):
 #     start_cs, end_cs = vec
 #     return [
@@ -291,7 +290,10 @@ def bbox(e):
         return [e["cs"], e["cs"]]
 
     elif e["type"] == "image":
-        return [e["top_left_cs"], translate_coords(e["top_left_cs"], e["width"], -e["height"])]
+        return [
+            e["top_left_cs"],
+            translate_coords(e["top_left_cs"], e["width"], -e["height"])
+        ]
 
     else:
         raise ValueError("bbox not implemented for element: %s." % e["type"])
@@ -341,11 +343,13 @@ def translate(e, delta_x, delta_y):
     elif e["type"] == "image":
         e["top_left_cs"] = translate_coords(e["top_left_cs"], delta_x, delta_y)
     else:
-        raise ValueError("tranlate not implemented for element: %s." % e["type"])
+        raise ValueError(
+            "tranlate not implemented for element: %s." % e["type"])
+
 
 # NOTE: this will move the center of the element. translate to get the appropriate
 # center.
-# TODO: test this function. this remains untested.
+# TODO: test this function.
 def scale(e, alpha):
     if isinstance(e, list):
         assert len(e) > 0
@@ -353,12 +357,10 @@ def scale(e, alpha):
             scale(e_i, alpha)
 
     elif e["type"] == 'open_path':
-        e["cs_lst"] = [scale_coords(cs, alpha) for cs in e["cs_lst"]
-        ]
+        e["cs_lst"] = [scale_coords(cs, alpha) for cs in e["cs_lst"]]
 
     elif e["type"] == 'closed_path':
-        e["cs_lst"] = [scale_coords(cs, alpha) for cs in e["cs_lst"]
-        ]
+        e["cs_lst"] = [scale_coords(cs, alpha) for cs in e["cs_lst"]]
 
     elif e["type"] == "circle":
         e["center_cs"] = scale_coords(e["center_cs"], alpha)
@@ -384,8 +386,10 @@ def scale(e, alpha):
     else:
         raise ValueError("scale not implemented for element: %s." % e["type"])
 
+
 def scale_coords(cs, alpha):
     return [alpha * x for x in cs]
+
 
 def translate_horizontally(e, delta):
     translate(e, delta, 0)
@@ -479,12 +483,15 @@ def place_to_the_right(e, e_ref, spacing):
     delta = (x_ref - x) + spacing
     translate_horizontally(e, delta)
 
+
 # place with functions (flexible!)
-def place_relative_to_at_angle_with_fns(e, e_ref, fn, fn_ref, out_angle, spacing):
+def place_relative_to_at_angle_with_fns(e, e_ref, fn, fn_ref, out_angle,
+                                        spacing):
     cs_ref = fn_ref(*bbox(e_ref))
     cs_to = coords_on_circle(cs_ref, spacing, out_angle)
     cs_from = fn(*bbox(e))
     translate_to_coords(e, cs_from, cs_to)
+
 
 # place above
 def place_above_and_align_to_the_left(e, e_ref, spacing):
@@ -598,6 +605,17 @@ def align_centers_horizontally(e_lst, x):
         translate_horizontally(e, x - center_cs[0])
 
 
+def align_centers_vertically(e_lst, y):
+    for e in e_lst:
+        center_cs = center_coords(e)
+        translate_vertically(e, y - center_cs[1])
+
+
+def align_centers_both(e_lst, x, y):
+    align_centers_horizontally(e_lst, x)
+    align_centers_vertically(e_lst, y)
+
+
 def align_lefts(e_lst, x):
     for e in e_lst:
         top_left_cs, _ = bbox(e)
@@ -608,12 +626,6 @@ def align_rights(e_lst, x):
     for e in e_lst:
         _, bottom_right_cs = bbox(e)
         translate_horizontally(e, x - bottom_right_cs[0])
-
-
-def align_centers_vertically(e_lst, y):
-    for e in e_lst:
-        center_cs = center_coords(e)
-        translate_vertically(e, y - center_cs[1])
 
 
 def align_tops(e_lst, y):
@@ -868,7 +880,6 @@ def circular_arc(center_cs, radius, start_angle, end_angle, tikz_str=""):
 def equilateral_triangle(center_cs, radius, starting_angle, tikz_str=""):
     cs_lst = equispaced_coords_on_circle(center_cs, radius, 3)
     cs_lst = [rotate_coords(cs, center_cs, starting_angle) for cs in cs_lst]
-    print cs_lst
     return closed_path(cs_lst, tikz_str)
 
 
@@ -941,12 +952,28 @@ def vertical_ticks(start_cs, num_ticks, tick_spacing, tick_delta, tikz_str=""):
     ]
 
 
+def arrow(shaft_width, shaft_height, head_width, head_height, tikz_str=""):
+    return stz.closed_path([
+        [0.0, shaft_height / 2.0],
+        [shaft_width, shaft_height / 2.0],
+        [shaft_width, head_height / 2.0],
+        [shaft_width + head_width, 0.0],
+        [shaft_width, -head_height / 2.0],
+        [shaft_width, -shaft_height / 2.0],
+        [0.0, -shaft_height / 2.0],
+    ], tikz_str)
+
 ### helper functions for placing coords
-
-
 def coords_on_circle(center_cs, radius, angle):
     cs = translate_coords_horizontally(center_cs, radius)
     return rotate_coords(cs, center_cs, angle)
+
+
+def antipodal_coords(cs, radius, angle):
+    return [
+        coords_on_circle(cs, radius, angle),
+        coords_on_circle(cs, radius, angle + 180.0)
+    ]
 
 
 def equispaced_coords_on_circle(center_cs, radius, n):
@@ -957,9 +984,11 @@ def equispaced_coords_on_circle(center_cs, radius, n):
 def coords_on_ellipse(center_cs, horizontal_radius, vertical_radius, angle):
     raise NotImplementedError
 
+
 def are_coords_inside_rectangle(cs, top_left_cs, bottom_right_cs):
     return (top_left_cs[0] <= cs[0] and cs[0] <= bottom_right_cs[0] and
-        bottom_right_cs[1] <= cs[1] and cs[1] <= top_left_cs[1])
+            bottom_right_cs[1] <= cs[1] and cs[1] <= top_left_cs[1])
+
 
 def coords_on_rectangle(top_left_cs, bottom_right_cs, angle):
     center_cs = midway_coords(top_left_cs, bottom_right_cs)
@@ -977,6 +1006,7 @@ def coords_on_rectangle(top_left_cs, bottom_right_cs, angle):
     elif angle > 180.0 + delta_angle and angle <= 360.0 - delta_angle:
         cs = coords_on_line_with_y_value(center_cs, end_cs, bottom_right_cs[1])
     return cs
+
 
 # t in [0, 1]. for symmetric curves, it should be 0.5 for the middle
 def coords_on_bezier(from_cs, to_cs, c1_cs, c2_cs, t):
@@ -1042,16 +1072,13 @@ def draw_to_tikz(e):
             cmd_lst.extend(draw_to_tikz(e_i))
 
     elif e["type"] == 'open_path':
-        cmd_lst.append(
-            "\\draw[%s] " % e["tikz_str"] +
-            " -- ".join(["(%f, %f)" % tuple(cs) for cs in e["cs_lst"]]) + ";")
+        cmd_lst.append("\\draw[%s] " % e["tikz_str"] + " -- ".join(
+            ["(%f, %f)" % tuple(cs) for cs in e["cs_lst"]]) + ";")
 
     elif e["type"] == 'closed_path':
         # print e
-        cmd_lst.append(
-            "\\draw[%s] " % e["tikz_str"] +
-            " -- ".join(["(%f, %f)" % (cs[0], cs[1]) for cs in e["cs_lst"]]) +
-            " -- cycle;")
+        cmd_lst.append("\\draw[%s] " % e["tikz_str"] + " -- ".join(
+            ["(%f, %f)" % (cs[0], cs[1]) for cs in e["cs_lst"]]) + " -- cycle;")
 
     elif e["type"] == "circle":
         cmd_lst.append(
@@ -1085,7 +1112,8 @@ def draw_to_tikz(e):
                        (e["tikz_str"], e["cs"][0], e["cs"][1], e["expr"]))
 
     elif e["type"] == "image":
-        center_cs = translate_coords(e["top_left_cs"], e["width"] / 2.0, -e["height"] / 2.0)
+        center_cs = translate_coords(e["top_left_cs"], e["width"] / 2.0,
+                                     -e["height"] / 2.0)
         cmd_lst.append(
             "\\node[inner sep=0pt, %s] at (%f,%f) {\\includegraphics[height=%f, width=%f]{%s}};"
             % (e["tikz_str"], center_cs[0], center_cs[1], e["height"],
@@ -1122,10 +1150,6 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
             for (name, rgb) in name2color_in_rgb.items()
         ])
 
-    # for name in [
-    #     "node_line_color", "node_fill_color", "arrow_line_color",
-    #     "bbox_line_color", "bbox_fill_color"]:
-    #     define_color(name, cfg[name])
     tikz_lines.extend(draw_to_tikz(e))
     tikz_lines.extend([
         '\\end{tikzpicture}',
@@ -1192,7 +1216,6 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 
 #### TODO
 
-# - easily defining colors.
 # - continuous compilation with file changes (useful for finding the right dimensions).
 # - additional print options for generating tikz code.
 # - easier handling of tikz styling options
@@ -1206,7 +1229,6 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 # - computation of contour sets given a function.
 # - basic scaling options
 # - few basic default styles.
-# - rounded connectors on the corners.
 # - antipodal points for reference.
 # - dealing with text appropriately (currently it is somewhat of a 2nd class citizen)
 # - dealing with styling options appropriately  (these are not made super easy; require styling strings).
@@ -1223,7 +1245,7 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 # - fix the headers for the library.
 # - think of a better name.
 # - define a few styles. erase style.
-# - draw complex closed paths involving different types of commands.
+# - draw complex closed paths involving different commands.
 # - coloring text can be done, but I haven't thought much about it.
 # - effective use of higher order functions for saving effort.
 # - help with drawing highly symmetric figures, i.e., just draw a single plane.
@@ -1234,12 +1256,10 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 # - compute the spacing automatically from the sizes and the space that we want to occupy.
 # - more relative positioning functionality as it is very useful (some spacing to the right of it)
 # - translate_bottom_right_to_bottom_right(e, reference_e, delta_x, delta_y) and all the other combinations (there are sixteen of these functions, or even 64 such functions.)
-# -- (this is sufficient.)
 # TODO: add guidelines that should be useful to get coordinates manually for this and to measure relative coordinates.
 # TODO: add anchoring.
 # - reduce the number of very common two steps.
 # - add popular colors.
-# - consider moving colors and colormaps to their own file.
 # - https://en.wikipedia.org/wiki/3D_projection ; add 3D projections.
 # - draw patterns by copying a figure and putting it into multiple places or by calling a function.
 # or by distributing a set of existing figures on a grid.
@@ -1253,6 +1273,11 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 # http://www.sascha-frank.com/latex-font-size.html
 # https://tug.org/TUGboat/tb33-3/tb105thurnherr.pdf
 # TODO: do GIFs.
+# TODO: do pseudo interactivity (grid of multiple frames).
+# TODO: add a way of dealing with node names.
+# TODO: easy wall of using sane-tikz for presentations.
+# work with maps and coloring maps (this might be interesting.)
+# - basic functionality to read simple svg files.
 
 # - ask for donations (*)
 
@@ -1263,3 +1288,33 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 
 # http://iamvdo.me/en/blog/css-font-metrics-line-height-and-vertical-align#lets-talk-about-font-size-first
 # TODO: check about font size.
+
+# TODO: add a tile option. this needs to deal with alignments:
+# tons of different ones. how to angle the ones that have different sizes.
+
+# Show a GIF of local first and second order approximations to various functions.
+
+# Low pass filter; this would be nice.
+
+# file:///Users/negrinho/Downloads/world.svg
+# add world maps.
+
+# https://simplemaps.com/
+
+# https://distill.pub/
+
+# TODO: make a discovery
+
+# convex hull with some sequence of points.
+# change this to use numpy at some point and to handle directly
+# matrices (n points x dimension.)
+# do these like matlab.
+
+# https://tex.stackexchange.com/questions/25249/how-do-i-use-a-particular-font-for-a-small-section-of-text-in-my-document
+
+# TODO: make it possible to compile to svg (not sure if it can have data.)
+# this would be useful to embed it in a webpage. (alternatives.)
+
+# TODO: learning html
+
+# how to surround an equation with a text bounding box. see that I can do it consistently.

@@ -14,7 +14,9 @@ def fill_color(color_name):
 
 
 def line_and_fill_colors(line_color_name, fill_color_name):
-    return combine_tikz_strs([fill_color(line_color_name), line_color(fill_color_name)])
+    return combine_tikz_strs(
+        [fill_color(line_color_name),
+         line_color(fill_color_name)])
 
 
 def fill_color_with_no_line(color_name):
@@ -96,11 +98,12 @@ def anchor(s):
     assert s in valid_opts
 
     tikz_opts = [
-        "west", "east", "north", "south",
-        "north west", "north east", "south west", "south east"
+        "west", "east", "north", "south", "north west", "north east",
+        "south west", "south east"
     ]
 
     return "anchor=%s" % tikz_opts[valid_opts.index(s)]
+
 
 standard_line_width = 1.0 / 64
 
@@ -122,6 +125,13 @@ def shade_color(rgb, alpha):
 def tint_color(rgb, alpha):
     return tuple(
         [int(round(255.0 * alpha + (1.0 - alpha) * x, 0)) for x in rgb])
+
+
+def mix_colors(rgb_start, rgb_end, alpha):
+    return tuple([
+        int(round(alpha * rgb_end[i] + (1.0 - alpha) * rgb_start, 0))
+        for i in range(3)
+    ])
 
 
 # For the following four color maps.
