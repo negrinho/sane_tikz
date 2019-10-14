@@ -1,0 +1,41 @@
+\documentclass{standalone}
+\usepackage[T1]{fontenc}\usepackage{tikz}
+\usepackage{amsmath, amsfonts}
+\usetikzlibrary{arrows.meta}
+\begin{document}
+\begin{tikzpicture}
+\definecolor{mygreen}{RGB}{2,129,0}
+\draw[line width=0.018750cm] (0.000000, 0.000000) circle (0.300000);
+\node[] at (0.000000,0.000000) {8};
+\draw[line width=0.018750cm] (-1.200000, -1.020000) circle (0.300000);
+\node[] at (-1.200000,-1.020000) {3};
+\draw[line width=0.018750cm] (1.200000, -1.020000) circle (0.300000);
+\node[] at (1.200000,-1.020000) {10};
+\draw[line width=0.018750cm] (-1.950000, -2.040000) circle (0.300000);
+\node[] at (-1.950000,-2.040000) {1};
+\draw[line width=0.018750cm] (-0.450000, -2.040000) circle (0.300000);
+\node[] at (-0.450000,-2.040000) {6};
+\draw[line width=0.018750cm] (1.950000, -2.040000) circle (0.300000);
+\node[] at (1.950000,-2.040000) {14};
+\draw[line width=0.018750cm, fill=mygreen, draw=mygreen] (-1.050000, -3.060000) circle (0.300000);
+\node[line width=0.018750cm, fill=mygreen, draw=mygreen, text=white] at (-1.050000,-3.060000) {\textbf{4}};
+\draw[line width=0.018750cm] (0.150000, -3.060000) circle (0.300000);
+\node[] at (0.150000,-3.060000) {7};
+\draw[line width=0.018750cm] (1.350000, -3.060000) circle (0.300000);
+\node[] at (1.350000,-3.060000) {13};
+\draw[-latex, draw=blue, line width=0.018750cm] (-0.228582, -0.194295) -- (-0.971418, -0.825705);
+\draw[-latex, draw=black, line width=0.018750cm] (0.228582, -0.194295) -- (0.971418, -0.825705);
+\draw[-latex, draw=black, line width=0.018750cm] (-1.377717, -1.261695) -- (-1.772283, -1.798305);
+\draw[-latex, draw=blue, line width=0.018750cm] (-1.022283, -1.261695) -- (-0.627717, -1.798305);
+\draw[-latex, draw=black, line width=0.018750cm] (1.377717, -1.261695) -- (1.772283, -1.798305);
+\draw[-latex, draw=blue, line width=0.018750cm] (-0.602106, -2.298580) -- (-0.897894, -2.801420);
+\draw[-latex, draw=black, line width=0.018750cm] (-0.297894, -2.298580) -- (-0.002106, -2.801420);
+\draw[-latex, draw=black, line width=0.018750cm] (1.797894, -2.298580) -- (1.502106, -2.801420);
+\draw[dashed, line width=0.018750cm] (-1.450000, -2.660000) -- (-0.650000, -2.660000) -- (-0.650000, -3.460000) -- (-1.450000, -3.460000) -- cycle;
+\draw[dashed, line width=0.018750cm] (-1.550000, -1.640000) -- (0.550000, -1.640000) -- (0.550000, -3.560000) -- (-1.550000, -3.560000) -- cycle;
+\draw[dashed, line width=0.018750cm] (-2.350000, -0.620000) -- (0.650000, -0.620000) -- (0.650000, -3.660000) -- (-2.350000, -3.660000) -- cycle;
+\node[] at (-0.700000,0.100000) {\scriptsize{4 < 8}};
+\node[] at (-1.900000,-0.920000) {\scriptsize{4 > 3}};
+\node[] at (-1.150000,-1.940000) {\scriptsize{4 < 6}};
+\end{tikzpicture}
+\end{document}
