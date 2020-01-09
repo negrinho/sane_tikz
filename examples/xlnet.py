@@ -84,7 +84,7 @@ row2 = [m2] + hs1
 stz.distribute_horizontally_with_spacing([m1] + xs, horizontal_spacing)
 stz.distribute_horizontally_with_spacing([m2] + hs1, horizontal_spacing)
 stz.distribute_horizontally_with_spacing(hs2, horizontal_spacing)
-stz.distribute_vertically_with_spacing([row1, row2, hs2][::-1],
+stz.distribute_vertically_with_spacing([row1, row2, hs2],
                                        vertical_spacing)
 stz.align_rights([row1, row2, hs2], 0)
 
@@ -93,7 +93,7 @@ stz.place_above_and_align_to_the_center(x_out, hs2[2], vertical_spacing)
 legend = stz.latex(
     [0, 0],
     "Factorization order: $3 \\rightarrow 2 \\rightarrow 4 \\rightarrow 1$")
-cs = stz.place_below_and_align_to_the_center(legend, xs, legend_spacing)
+stz.place_below_and_align_to_the_center(legend, xs, legend_spacing)
 
 connections = [
     connect(m1, hs1[2]),

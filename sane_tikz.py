@@ -247,7 +247,7 @@ def rotate_coords(cs, axis_cs, angle):
     y_recentered = (y - y_axis)
     x_out = x_axis + c * x_recentered - s * y_recentered
     y_out = y_axis + s * x_recentered + c * y_recentered
-    return (x_out, y_out)
+    return [x_out, y_out]
 
 
 #### for composite elements
@@ -343,8 +343,8 @@ def translate(e, delta_x, delta_y):
     elif e["type"] == "image":
         e["top_left_cs"] = translate_coords(e["top_left_cs"], delta_x, delta_y)
     else:
-        raise ValueError(
-            "tranlate not implemented for element: %s." % e["type"])
+        raise ValueError("tranlate not implemented for element: %s." %
+                         e["type"])
 
 
 # NOTE: this will move the center of the element. translate to get the appropriate
@@ -452,7 +452,7 @@ def translate_bbox_left_center_to_coords(e, cs):
 
 def translate_bbox_right_center_to_coords(e, cs):
     top_left_cs, bottom_right_cs = bbox(e)
-    top_center_cs = top_center_coords(top_left_cs, bottom_right_cs)
+    top_center_cs = right_center_coords(top_left_cs, bottom_right_cs)
     translate_to_coords(e, top_center_cs, cs)
 
 
@@ -569,34 +569,46 @@ def place_to_the_right_and_align_to_the_bottom(e, e_ref, spacing):
     translate_bbox_bottom_left_to_coords(e, cs)
 
 
-####
-
-
-# TODO: needs to be adapted to keep the order of the elements.
+# left to right
 def distribute_horizontally_with_spacing(e_lst, spacing):
-    bs = [bbox(e) for e in e_lst]
-    b_all = bbox(e_lst)
-    rightmost = b_all[0][0]
-    for i in range(len(e_lst)):
-        b = bs[i]
+    for i in range(1, len(e_lst)):
         e = e_lst[i]
-        delta_x = rightmost - b[0][0]
+        e_prev = e_lst[i - 1]
+        cs = bbox(e)[0]
+        cs_prev = bbox(e_prev)[1]
+        delta_x = cs_prev[0] - cs[0] + spacing
         translate(e, delta_x, 0)
-        width = vector_to_deltax(b)
-        rightmost = rightmost + width + spacing
 
 
+# bottom to top
 def distribute_vertically_with_spacing(e_lst, spacing):
-    bs = [bbox(e) for e in e_lst]
-    b_all = bbox(e_lst)
-    topmost = b_all[0][1]
-    for i in range(len(e_lst)):
-        b = bs[i]
+    for i in range(1, len(e_lst)):
         e = e_lst[i]
-        delta_y = topmost - b[0][1]
+        e_prev = e_lst[i - 1]
+        cs = bbox(e)[1]
+        cs_prev = bbox(e_prev)[0]
+        delta_y = cs_prev[1] - cs[1] + spacing
         translate(e, 0, delta_y)
-        height = -vector_to_deltay(b)
-        topmost = topmost - height - spacing
+
+
+def distribute_centers_horizontally_with_spacing(e_lst, spacing):
+    for i in range(1, len(e_lst)):
+        e = e_lst[i]
+        e_prev = e_lst[i - 1]
+        cs = midway_coords(*bbox(e))
+        cs_prev = midway_coords(*bbox(e_prev))
+        delta_x = cs_prev[0] - cs[0] + spacing
+        translate(e, delta_x, 0)
+
+
+def distribute_centers_vertically_with_spacing(e_lst, spacing):
+    for i in range(1, len(e_lst)):
+        e = e_lst[i]
+        e_prev = e_lst[i - 1]
+        cs = midway_coords(*bbox(e))
+        cs_prev = midway_coords(*bbox(e_prev))
+        delta_y = cs_prev[1] - cs[1] + spacing
+        translate(e, 0, delta_y)
 
 
 def align_centers_horizontally(e_lst, x):
@@ -953,7 +965,7 @@ def vertical_ticks(start_cs, num_ticks, tick_spacing, tick_delta, tikz_str=""):
 
 
 def arrow(shaft_width, shaft_height, head_width, head_height, tikz_str=""):
-    return stz.closed_path([
+    return closed_path([
         [0.0, shaft_height / 2.0],
         [shaft_width, shaft_height / 2.0],
         [shaft_width, head_height / 2.0],
@@ -962,6 +974,7 @@ def arrow(shaft_width, shaft_height, head_width, head_height, tikz_str=""):
         [shaft_width, -shaft_height / 2.0],
         [0.0, -shaft_height / 2.0],
     ], tikz_str)
+
 
 ### helper functions for placing coords
 def coords_on_circle(center_cs, radius, angle):
@@ -1005,6 +1018,30 @@ def coords_on_rectangle(top_left_cs, bottom_right_cs, angle):
         cs = coords_on_line_with_x_value(center_cs, end_cs, top_left_cs[0])
     elif angle > 180.0 + delta_angle and angle <= 360.0 - delta_angle:
         cs = coords_on_line_with_y_value(center_cs, end_cs, bottom_right_cs[1])
+    return cs
+
+
+def coords_on_top_edge(top_left_cs, bottom_right_cs, alpha):
+    top_right_cs = top_right_coords(top_left_cs, bottom_right_cs)
+    cs = convex_combination_coords(top_left_cs, top_right_cs, alpha)
+    return cs
+
+
+def coords_on_bottom_edge(top_left_cs, bottom_right_cs, alpha):
+    bottom_left_cs = bottom_left_coords(top_left_cs, bottom_right_cs)
+    cs = convex_combination_coords(bottom_left_cs, bottom_right_cs, alpha)
+    return cs
+
+
+def coords_on_left_edge(top_left_cs, bottom_right_cs, alpha):
+    bottom_left_cs = bottom_left_coords(top_left_cs, bottom_right_cs)
+    cs = convex_combination_coords(bottom_left_cs, top_left_cs, alpha)
+    return cs
+
+
+def coords_on_right_edge(top_left_cs, bottom_right_cs, alpha):
+    top_right_cs = top_right_coords(top_left_cs, bottom_right_cs)
+    cs = convex_combination_coords(bottom_right_cs, top_right_cs, alpha)
     return cs
 
 
@@ -1072,13 +1109,16 @@ def draw_to_tikz(e):
             cmd_lst.extend(draw_to_tikz(e_i))
 
     elif e["type"] == 'open_path':
-        cmd_lst.append("\\draw[%s] " % e["tikz_str"] + " -- ".join(
-            ["(%f, %f)" % tuple(cs) for cs in e["cs_lst"]]) + ";")
+        cmd_lst.append(
+            "\\draw[%s] " % e["tikz_str"] +
+            " -- ".join(["(%f, %f)" % tuple(cs) for cs in e["cs_lst"]]) + ";")
 
     elif e["type"] == 'closed_path':
         # print e
-        cmd_lst.append("\\draw[%s] " % e["tikz_str"] + " -- ".join(
-            ["(%f, %f)" % (cs[0], cs[1]) for cs in e["cs_lst"]]) + " -- cycle;")
+        cmd_lst.append(
+            "\\draw[%s] " % e["tikz_str"] +
+            " -- ".join(["(%f, %f)" % (cs[0], cs[1]) for cs in e["cs_lst"]]) +
+            " -- cycle;")
 
     elif e["type"] == "circle":
         cmd_lst.append(
@@ -1201,6 +1241,10 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 #===> font type
 
 # https://www.overleaf.com/learn/latex/Font_typefaces
+# https://tug.org/FontCatalogue/
+# https://fonts.google.com/
+# http://mirror.las.iastate.edu/tex-archive/fonts/
+# https://tex.stackexchange.com/questions/84533/font-installation-woes-texshop-on-a-mac?rq=1
 
 #===> external links
 
@@ -1278,6 +1322,8 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 # TODO: easy wall of using sane-tikz for presentations.
 # work with maps and coloring maps (this might be interesting.)
 # - basic functionality to read simple svg files.
+# - package fonts with sane tikz
+# overleaf.com/learn/latex/Questions/I_have_a_custom_font_I%27d_like_to_load_to_my_document._How_can_I_do_this%3F
 
 # - ask for donations (*)
 
@@ -1318,3 +1364,5 @@ def draw_to_tikz_standalone(e, filepath, name2color_in_rgb=None):
 # TODO: learning html
 
 # how to surround an equation with a text bounding box. see that I can do it consistently.
+# can I compile animations to manim.
+# can I set properties easily, e.g., color.

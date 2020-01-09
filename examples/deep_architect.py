@@ -234,28 +234,28 @@ def frame(frame_idx):
 
     modules = []
     if frame_idx == 0:
-        stz.distribute_vertically_with_spacing([cc, [r1, r2], o, c1][::-1],
+        stz.distribute_vertically_with_spacing([cc, [r1, r2], o, c1],
                                                vertical_module_spacing)
 
         stz.align_centers_horizontally([cc, [r1, r2], o, c1], 0)
         modules.extend([c1, o, r1, r2, cc])
 
     else:
-        stz.distribute_vertically_with_spacing([c3, c4],
+        stz.distribute_vertically_with_spacing([c4, c3],
                                                vertical_module_spacing)
         stz.distribute_horizontally_with_spacing([c2, [c3, c4]],
                                                  horizontal_module_spacing)
-        stz.align_centers_vertically([c2, [c3, c4]], 0)
+        stz.align_centers_vertically([[c3, c4], c2], 0)
 
         if frame_idx == 1:
             stz.distribute_vertically_with_spacing(
-                [cc, [c2, c3, c4], o, c1][::-1], vertical_module_spacing)
+                [cc, [c2, c3, c4], o, c1], vertical_module_spacing)
             stz.align_centers_horizontally([cc, [c2, c3, c4], o, c1], 0)
             modules.extend([c1, o, c2, c3, c4, cc])
 
         else:
             stz.distribute_vertically_with_spacing(
-                [cc, [c2, c3, c4], d, c1][::-1], vertical_module_spacing)
+                [cc, [c2, c3, c4], d, c1], vertical_module_spacing)
             stz.align_centers_horizontally([cc, [c2, c3, c4], d, c1], 0)
             modules.extend([c1, d, c2, c3, c4, cc])
 
@@ -444,7 +444,7 @@ def search_space_transition():
     stz.align_tops(e, 0.0)
     stz.distribute_horizontally_with_spacing([e0, e1], frame_spacing)
     stz.distribute_horizontally_with_spacing([e2, e3], frame_spacing)
-    stz.distribute_vertically_with_spacing([[e0, e1], [e2, e3]], frame_spacing)
+    stz.distribute_vertically_with_spacing([[e2, e3], [e0, e1]], frame_spacing)
 
     stz.draw_to_tikz_standalone(e, "deep_architect.tex", name2color)
 

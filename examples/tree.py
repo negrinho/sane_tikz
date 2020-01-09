@@ -67,7 +67,7 @@ for i in [8, 3, 10, 1, 6, 14, 4, 7, 13]:
         s = str(i)
     nodes.append(fn(s))
 stz.distribute_vertically_with_spacing(
-    [nodes[0:1], nodes[1:3], nodes[3:6], nodes[6:9]], vertical_node_spacing)
+    [nodes[0:1], nodes[1:3], nodes[3:6], nodes[6:9]][::-1], vertical_node_spacing)
 
 place(nodes[1], [-1])
 place(nodes[2], [1])
