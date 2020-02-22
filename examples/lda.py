@@ -1,4 +1,4 @@
-# reproduction of Figure 5 (left) from http://www.jmlr.org/papers/volume3/blei03a/blei03a.pdf
+# reproduction of Figure 7 from http://www.jmlr.org/papers/volume3/blei03a/blei03a.pdf
 
 import sane_tikz as stz
 import formatting as fmt
@@ -70,8 +70,9 @@ w_c["tikz_str"] = fmt.combine_tikz_strs(
 stz.distribute_horizontally_with_spacing([alpha_c, theta_c, z_c, w_c],
                                          node_spacing)
 stz.distribute_horizontally_with_spacing([eta_c, beta_c], node_spacing)
-stz.place_above_and_align_to_the_center(
-    [eta_c, beta_c], [alpha_c, theta_c, z_c, w_c], node_spacing)
+stz.place_above_and_align_to_the_center([eta_c, beta_c],
+                                        [alpha_c, theta_c, z_c, w_c],
+                                        node_spacing)
 
 alpha_l = label_below(alpha_c, "$\\alpha$")
 theta_l = label_below(theta_c, "$\\theta$")
