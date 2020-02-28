@@ -31,6 +31,12 @@ def radians_to_degrees(angle):
     return angle * (360.0 / (2.0 * math.pi))
 
 
+def normalize_angle_to_standard_interval(angle):
+    multiplier = math.floor(angle / 360.0)
+    angle = angle - multiplier * 360.0
+    return angle
+
+
 def rgb_to_hex(color_in_rgb):
     raise NotImplementedError
 
@@ -281,8 +287,10 @@ def bbox(e):
         cs = e["center_cs"]
         return [[cs[0] - rx, cs[1] + ry], [cs[0] + rx, cs[1] - ry]]
 
+    ### TODO: this is wrong, but simple for now.
     elif e["type"] == 'bezier':
-        raise NotImplementedError
+        return (top_left_coords(e["from_cs"], e["to_cs"]),
+                bottom_right_coords(e["from_cs"], e["to_cs"]))
 
     # NOTE: does not influence the bounding box (for simplicity)
     # TODO: optionally, make it part of text_width explicitly.
@@ -808,6 +816,54 @@ def bezier(from_cs, to_cs, c1_cs, c2_cs, tikz_str=""):
     }
 
 
+def bezier_with_relative_angle_length_controls(from_cs,
+                                               to_cs,
+                                               c1_angle,
+                                               c1_length,
+                                               c2_angle,
+                                               c2_length,
+                                               tikz_str=""):
+
+    ref_angle = vector_to_angle([from_cs, to_cs])
+    c1_cs = coords_on_circle(from_cs, c1_length, ref_angle + c1_angle)
+    c2_cs = coords_on_circle(to_cs, c2_length, ref_angle + c2_angle)
+    return bezier(from_cs, to_cs, c1_cs, c2_cs, tikz_str)
+
+
+def bezier_with_symmetric_relative_angle_length_controls(
+        from_cs, to_cs, control_angle, control_length, tikz_str=""):
+
+    ref_angle = vector_to_angle([from_cs, to_cs])
+    c1_cs = coords_on_circle(from_cs, control_length, ref_angle + control_angle)
+    c2_cs = coords_on_circle(to_cs, control_length,
+                             ref_angle + 180.0 - control_angle)
+    return bezier(from_cs, to_cs, c1_cs, c2_cs, tikz_str)
+
+
+# TODO: do the analog of this, but with the angles not tied.
+def bezier_with_symmetric_relative_angle_relative_length_controls(
+        from_cs, to_cs, control_angle, control_length_multiplier, tikz_str=""):
+
+    ref_angle = vector_to_angle([from_cs, to_cs])
+    control_length = control_length_multiplier * length([from_cs, to_cs])
+    c1_cs = coords_on_circle(from_cs, control_length, ref_angle + control_angle)
+    c2_cs = coords_on_circle(to_cs, control_length,
+                             ref_angle + 180.0 - control_angle)
+    return bezier(from_cs, to_cs, c1_cs, c2_cs, tikz_str)
+
+
+def bezier_with_symmetric_relative_angle_midway_controls(
+        from_cs, to_cs, control_angle, tikz_str=""):
+    angle = normalize_angle_to_standard_interval(control_angle)
+    assert angle < 90.0 or angle > 270.0
+    x = length([from_cs, to_cs]) / 2.0
+    control_length = x / math.cos(degrees_to_radians(control_angle))
+    ref_angle = vector_to_angle([from_cs, to_cs])
+    control_cs = coords_on_circle(from_cs, control_length,
+                                  ref_angle + control_angle)
+    return bezier(from_cs, to_cs, control_cs, control_cs, tikz_str)
+
+
 # NOTE: these are still not very nice.
 def bezier_with_midwayx_controls(from_cs, to_cs, tikz_str=""):
     cs = midway_coords(from_cs, to_cs)
@@ -1084,6 +1140,45 @@ def coords_on_line_with_y_value(start_cs, end_cs, y):
         b = x1 - m * y1
         x = m * y + b
     return [x, y]
+
+
+def coords_from_deltas(start_cs, deltas_lst):
+    cs_lst = [start_cs]
+    cs = start_cs
+    for (delta_x, delta_y) in deltas_lst:
+        cs = translate_coords(cs, delta_x, delta_y)
+        cs_lst.append(cs)
+    return cs_lst
+
+
+def coords_from_horizontal_deltas(start_cs, delta_lst):
+    cs_lst = [start_cs]
+    cs = start_cs
+    for delta in delta_lst:
+        cs = translate_coords_horizontally(cs, delta)
+        cs_lst.append(cs)
+    return cs_lst
+
+
+def coords_from_vertical_deltas(start_cs, delta_lst):
+    cs_lst = [start_cs]
+    cs = start_cs
+    for delta in delta_lst:
+        cs = translate_coords_vertically(cs, delta)
+        cs_lst.append(cs)
+    return cs_lst
+
+
+def coords_on_grid(top_left_cs, num_rows, num_columns, cell_width, cell_height):
+    grid_cs = []
+    for i in range(num_rows + 1):
+        row_cs = []
+        for j in range(num_columns + 1):
+            cs = stz.translate_coords(top_left_cs, j * cell_width,
+                                      -i * cell_height)
+            row_cs.append(cs)
+        grid_cs.append(row_cs)
+    return grid_cs
 
 
 # for canvas aligned axis; transform the data first with log if log coords necessary.
