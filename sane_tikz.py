@@ -1174,9 +1174,19 @@ def coords_on_grid(top_left_cs, num_rows, num_columns, cell_width, cell_height):
     for i in range(num_rows + 1):
         row_cs = []
         for j in range(num_columns + 1):
-            cs = stz.translate_coords(top_left_cs, j * cell_width,
-                                      -i * cell_height)
+            cs = translate_coords(top_left_cs, j * cell_width, -i * cell_height)
             row_cs.append(cs)
+        grid_cs.append(row_cs)
+    return grid_cs
+
+
+def coords_on_irregular_grid(top_left_cs, column_width_lst, row_height_lst):
+
+    cs = top_left_cs
+    grid_cs = [coords_from_horizontal_deltas(cs, column_width_lst)]
+    for x in row_height_lst:
+        cs = translate_coords_vertically(cs, -x)
+        row_cs = coords_from_horizontal_deltas(cs, column_width_lst)
         grid_cs.append(row_cs)
     return grid_cs
 
