@@ -1020,8 +1020,13 @@ def vertical_ticks(start_cs, num_ticks, tick_spacing, tick_delta, tikz_str=""):
     ]
 
 
-def arrow(shaft_width, shaft_height, head_width, head_height, tikz_str=""):
-    return closed_path([
+def arrow(shaft_width,
+          shaft_height,
+          head_width,
+          head_height,
+          angle,
+          tikz_str=""):
+    cs_lst = [
         [0.0, shaft_height / 2.0],
         [shaft_width, shaft_height / 2.0],
         [shaft_width, head_height / 2.0],
@@ -1029,7 +1034,11 @@ def arrow(shaft_width, shaft_height, head_width, head_height, tikz_str=""):
         [shaft_width, -head_height / 2.0],
         [shaft_width, -shaft_height / 2.0],
         [0.0, -shaft_height / 2.0],
-    ], tikz_str)
+    ]
+    # axis_cs = center_coords(closed_path(cs_lst))
+    axis_cs = [(shaft_width + head_width) / 2.0, 0.0]
+    cs_lst = [rotate_coords(cs, axis_cs, angle) for cs in cs_lst]
+    return closed_path(cs_lst, tikz_str)
 
 
 ### helper functions for placing coords
