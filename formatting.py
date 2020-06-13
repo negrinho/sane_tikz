@@ -15,8 +15,8 @@ def fill_color(color_name):
 
 def line_and_fill_colors(line_color_name, fill_color_name):
     return combine_tikz_strs(
-        [fill_color(line_color_name),
-         line_color(fill_color_name)])
+        [fill_color(fill_color_name),
+         line_color(line_color_name)])
 
 
 def fill_color_with_no_line(color_name):

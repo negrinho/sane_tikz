@@ -81,6 +81,15 @@ Check the [examples](https://github.com/negrinho/sane_tikz/blob/master/examples/
   </a>
 </p>
 
+<!-- - factor_graphs: [[py]](https://github.com/negrinho/sane_tikz/blob/master/examples/factor_graphs.py) [[tex]](https://github.com/negrinho/sane_tikz/blob/master/examples/factor_graphs.tex) [[pdf]](https://github.com/negrinho/sane_tikz/blob/master/examples/factor_graphs.pdf)
+
+<p align="center">
+  <a href="https://github.com/negrinho/sane_tikz/blob/master/examples/factor_graphs.py">
+    <img src="https://user-images.githubusercontent.com/9198933/76093939-cea36c00-5f8f-11ea-88d0-213bf4a0c770.png" width="640">
+  </a>
+</p> -->
+
+
 # Roadmap
 
 - Easy GIF generation
