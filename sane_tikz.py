@@ -1069,6 +1069,7 @@ def are_coords_inside_rectangle(cs, top_left_cs, bottom_right_cs):
 
 
 def coords_on_rectangle(top_left_cs, bottom_right_cs, angle):
+    angle = normalize_angle_to_standard_interval(angle)
     center_cs = midway_coords(top_left_cs, bottom_right_cs)
     end_cs = coords_on_circle(center_cs, 1.0, angle)
     top_right_cs = top_right_coords(top_left_cs, bottom_right_cs)
