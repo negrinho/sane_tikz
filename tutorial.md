@@ -11,13 +11,13 @@ Every program starts with
 import sane_tikz as stz
 import formatting as fmt
 ```
-which imports the drawing, grouping, alignment, distribution, coordinate computation functionalities of the library.
+which imports the drawing, grouping, alignment, distribution, and coordinate computation functionalities of the library.
 `formatting` contains functionality to generate the TikZ formatting strings that are used for different purposes (e.g., making lines dashed or dotted, or changing the opacity of a fill).
 Eventually, every example ends with a call to `stz.draw_to_tikz_standalone` which generates the code for a TikZ figure to a file.
 This draw function unpacks a visual element into its components and draws them individually.
 
 Perhaps the most useful concept in `sane_tikz` is grouping.
-If  you have visual elements `e1` and `e2`, you can group them to create a new visual element `e_grouped = [e1, e2]`, i.e., by wrapping the visual elements in a list.
+If you have visual elements `e1` and `e2`, you can group them to create a new visual element `e_grouped = [e1, e2]`, i.e., by wrapping the visual elements in a list.
 The new element `e_grouped` will be manipulated as a visual element in its own right, meaning that its bounding box is updated accordingly, and therefore all functions that rely on bounding box computations have their behavior updated.
 The order that elements are grouped matters when drawing them to the canvas.
 A visual element is decomposed into its sub-elements (if any) by going top to bottom and left to right.
@@ -25,9 +25,9 @@ Every element can be eventually decomposed down to basic visual elements such as
 This recursive decomposition can be inspected in the `stz.draw_to_tikz` function which is used by the `stz.draw_to_tikz_standalone`.
 This means that we can impose a drawing ordering simply by ordering the elements correctly in the grouping.
 In the call to `stz.draw_to_tikz_standalone`, all the elements of the figure are grouped.
-Oftentimes for figures, there is no particular ordering that must be imposed because the elements might not have overlaps between visual elements in the figure.
+Oftentimes for figures, there is no particular ordering that must be imposed because the sub-elements don't overlap.
 
-Other important concepts are moving existing elements and computing coordinates of interest such as bounding box computations.
+Other important concepts are moving existing elements and computing coordinates of interest.
 
 # Simple example
 
@@ -35,9 +35,8 @@ The following example is drawn by the code below, which will be broken down into
 This code corresponds to [this](https://github.com/negrinho/sane_tikz/blob/master/examples/pentagon.pdf) figure.
 
 Importing the library and defining some basic values for specifying the figure.
-In the examples, we often use this format which allows us to change some high-level characteristics of the figure and regenerate the output.
+In examples, we often use this format which allows us to change some high-level characteristics of the figure and regenerate the output.
 This is great compared to what you would need to do in a WYSIWYG editor to change high-level aspects of the figure (e.g., spacing or line width).
-
 ```
 import sane_tikz as stz
 import formatting as fmt
@@ -77,7 +76,7 @@ origin_label_cs = stz.translate_coords_diagonally(origin_cs, -label_spacing)
 Create the representation of the axes.
 Note that they are grouped together.
 A formatting string is used to create a line segment with an arrowhead.
-See `formatting` for other possible options.
+See `formatting` for other options.
 ```
 axes = [
    stz.line_segment(x_start_cs, x_end_cs, s_fmt),
@@ -104,8 +103,8 @@ labels = [
 Finally, all the elements in the figure are grouped into a single one (i.e., `[e, axes, labels]`, which represents the pentagon, the axes, and the labels, respectively).
 The compilation of this figure into TikZ code is done by `stz.draw_to_tikz_standalone`.
 The resulting tex file can then be compiled by a Latex compiler (e.g., pdflatex) to generate the visual output (see [here](https://github.com/negrinho/sane_tikz/blob/master/examples/pentagon.tex) for the result for this figure).
-All figures are drawn in a lazy fashion, where first define the representation of the figure in terms of basic visual elements and finally compile them to TikZ code.
-This allows us to define visual elements and move them around before generating the final visual representation.
+All figures are drawn in a lazy fashion, where first we define the representation of the figure in terms of basic visual elements and then compile them to TikZ code.
+This allows us to define visual elements and move them around before generating the final visual output.
 Grouping is a very powerful feature.
 For example, in the call below, we could have omitted all labels by simply passing `[e, axes]` instead of `[e, axes, labels]`.
 We are also free to keep adding elements and generating new figures with them, even after the call to `stz.draw_to_tikz_standalone`.
@@ -119,37 +118,35 @@ stz.draw_to_tikz_standalone([e, labels, axes], "pentagon.tex")
 ## Naming
 
 We often prefix or suffix variable names with `cs` when they refer to coordinates, which are simply a list with a pair of numbers, which is a coordinate of a point in the canvas.
-Functions that return coordinates often contain the substring `coords` in its name, e.g., `stz.translate_coords_horizontally` and `stz.coords_on_circle`.
+Functions that return coordinates often contain the substring `coords` in their names, e.g., `stz.translate_coords_horizontally` and `stz.coords_on_circle`.
 These functions are often useful for computing coordinates of interest, such as coordinates on a circle, on a line segment, or on a rectangle.
 For example, if you wanted the coordinates that are 45 degrees outside the origin at a distance of 5cm, you would call `stz.coords_on_circle([0, 0], 5.0, 45.0)`, which would output the desired values.
 These functions mimic some of the hand drawing procedures that you do with a ruler, compass, and protractor.
 
-For graphical elements, we often use the variable `e` (or `e_lst`) to denote them.
+For visual elements, we often use the variable `e` (or `e_lst`) to denote them.
 These are elements that can eventually be converted to a TikZ representation.
 Contrary to coordinates, there isn't a single substring that appears in a function name when it produces elements to be drawn.
 Examples of this are `stz.circle` and `stz.line_segment`.
 These do not draw directly an element, simply they return a representation of the element to be drawn (i.e., a representation from which the TikZ string representing the object can be drawn).
 The representation of an element to draw is, if we are talking about the most basic elements, a dictionary from strings to values that contains enough information to generate the TikZ representation for that element, and if more complex, a list of nested lists containing many visual elements (i.e., these are created through grouping).
 
-
 ## Grouping
 
-Grouping is one of the most important functionalities of the language, and in my opinion, one of the most powerful when combined with the placement and alignment functionalities that use bounding box computations.
+Grouping is one of the most important functionalities of the language, and one of the most powerful, especially when combined with the placement and alignment functionalities that use bounding box computations.
 Grouping corresponds to lumping various elements into a new element.
-This is done easily by wrapping the elements into a list and passing this list around.
+This is done easily by wrapping the elements into a list and passing the list around.
 This new element will function as an element in its own right with respect to bounding box computations.
 
 ## Translation and alignment
 
 Given various elements, often regular such as multiple circles of the same size, there is often the need of aligning them (horizontally or vertically) or distributing them (horizontally or vertically).
-These needs are met by functions that take graphical elements (grouped or not) and translate them around to implement the desired transformation.
+These needs are met by functions that take visual elements (grouped or not) and translate them around to implement the desired transformation.
 Note that these functions have side-effects, meaning that the state of the visual elements passed to the functions will change to implement the desired transformations.
 Translation and alignment functions operate on visual elements (grouped or not) and usually have movement-related terms in their function name (e.g., `translate`, `place`, `align`, and `distribute`).
 The fact that they take elements can often be determined by the names of arguments of the functions, e.g., `e` or `e_lst`.
 Some functions take reference elements that are used to compute quantities that are then used to specify a placement, e.g., `place_above_and_align_to_the_center` takes `e`, `e_ref`, and `spacing`; `e` is the element to be placed above `e_ref` such that the bounding boxes of `e` and `e_ref` are at a distance `spacing` from each other and their centers are aligned; only `e` is moved with respect to `e_ref`.
-A variety of functions of this type exist such as `place_below_and_align_to_the_center`, `distribute_vertically_with_spacing`, any many more.
-I recommend reading the source for these functions which often short and rely on high level functionality of the language (see immediately below for one example).
-
+Many functions of this type exist such as `place_below_and_align_to_the_center`, `distribute_vertically_with_spacing`, any many more.
+I recommend reading the source code for these functions which are often short and rely on high-level functionality (see immediately below for one example).
 ```
 def distribute_vertically_with_spacing(e_lst, spacing):
    for i in range(1, len(e_lst)):
@@ -167,45 +164,43 @@ These functions usually have `cs` in the name of the arguments and `coords` in t
 ## Bounding boxes
 
 Bounding boxes are convenient summaries when working with figures.
-They are used widely in translation and alignment functionality.
+They are used widely in translation and alignment functionalities.
 The figures are summarized into a pair of coordinates of the top left corner and the bottom right corner of the bounding box.
 The computation of the bounding box for an element is done by ungrouping recursively an element until it is expressed into basic elements for which we can compute the bounding box and then put back together through logic on how to combine multiple bounding boxes into a single bounding box (see `stz.bbox`).
 This function is widely used, both in functionality within sane_tikz (e.g., `place_to_the_right`, `distribute_vertically_with_spacing`, and many others) and in drawing specific figures.
-Bounding box computation may fail in cases where the grouped element contains basic elements which don’t yet have functionality to compute a bounding box.
+Bounding box computation may fail in cases where the grouped element contains a basic element which doesn’t yet have functionality to compute its bounding box.
 
 ## Coordinates
 
-
 Coordinates are the starting point for much of what is done in this library.
-Coordinates are used in specifying different graphical elements, for example rectangles (i.e., `stz.rectangle` which is specified through the coordinates of the top left corner and the bottom corner and an optional formatting string (e.g., for changing the colors of the line or the fill). Some examples of functions in this category are:
-`coords_on_circle`, antipodal_`coords`, `coords_on_ellipse`, `coords_on_rectangle`, `coords_on_line_segment`, `coords_on_line_segment`, `coords_on_line_with_x_value`, `coords_on_line_with_y_value`, `coords_from_deltas`, and `coords_on_grid`.
+Coordinates are used in specifying different visual elements, for example rectangles (i.e., `stz.rectangle` which is specified through the coordinates of the top left corner and the bottom corner and an optional formatting string (e.g., for changing the colors of the line or the fill)). Examples of functions in this category are
+`coords_on_circle`, `antipodal_coords`, `coords_on_ellipse`, `coords_on_rectangle`, `coords_on_line_segment`, `coords_on_line_segment`, `coords_on_line_with_x_value`, `coords_on_line_with_y_value`, `coords_from_deltas`, and `coords_on_grid`.
 Coordinate computation is also important for moving elements to specific places.
 
-Sometime coordinates are computed with respect to other elements or coordinates, e.g., `center_coords` and `coords_from_bbox_fn` compute the coordinates of the center of the bounding box of an element and compute coordinates that are derived using some function of the coordinates of the bounding box.
+Ocasionally, coordinates are computed with respect to other elements or other coordinates, e.g., `center_coords` and `coords_from_bbox_fn` compute the coordinates of the center of the bounding box of an element and the coordinates that are the output of a function of the coordinates of the bounding box, respectively.
 
-## Latex support
+## LaTex support
 
-Latex support is done through `stz.latex` which takes both a string (in math mode or otherwise) and the coordinates of where that string is to be placed.
+Latex typesetting is accomplished through `stz.latex` which takes both a string (in math mode or otherwise) and the coordinates of where that string is to be placed.
 Formatting options using `anchor` and `alignment` are often useful for specifying the placement of the string relative to the coordinates specified.
-This allows to write latex code in a fairly transparent way, e.g., any string that would be possible to write in math mode (between $ or $$) is valid and so are environments (although additional trial and error may be necessary here in case errors are thrown).
-The conversion of the latex string to the tikz code is fairly transparent as it is done through a node placed at the coordinates specified.
+This implementation allows to write LaTex code in a fairly transparent way, e.g., any string that would be possible to write in math mode (between `$` or `$$`) is valid and so are environments (although additional trial and error may be necessary here in case errors are thrown).
+The conversion of the LaTex string to the TiKz code is fairly transparent as it is done through a node placed at the coordinates specified.
 
 ## Formatting
 
 Most formatting is delegated to the `formatting` library.
-The functionality of this library was designed to help generate the corresponding formatting strings given a set of options.
+The functionality of this library was designed to help generate TikZ formatting strings given a set of options.
 These can be options for fill, line width, line style, opacity, defining new colors, using color maps, and so on.
 Multiple formatting strings can be combined into a single one using `fmt.combine_tikz_strs`.
-This string is then passed as an argument in specific functions of the library to define the appropriate options (e.g., in `stz.rectangle`).
-There is little enforcement of the correctness of the string; the functions there serve mostly as a way of making clear what are the most common options available and providing some guidance in assigning values to them.
-`formatting` is not comprehensive; any valid formatting string that you would use in TikZ is valid and can be plugged in, rather than going through functions in `formatting`.
+This string is then passed as an argument (often called `tikz_str` in the function signature) to define appropriate options (e.g., in `stz.rectangle`).
+There is little enforcement of the correctness of the string; the functions there serve mostly as a way of making clear what are the most common options available and providing guidance in assigning values to them.
+`formatting` is not comprehensive; any valid formatting string that you would use in TikZ is valid and can be plugged in directly, rather than going through functions in `formatting`.
 See the figures in the example folder for more information about their usage.
 
 # A more complex example
 
 Here is an explanation for [tree.py](https://github.com/negrinho/sane_tikz/blob/master/examples/tree.py) which produces [tree.pdf](https://github.com/negrinho/sane_tikz/blob/master/examples/tree.pdf).
 This example shows the use of many of the functionalities discussed in this tutorial such as grouping, placement, and coordinate computation.
-
 ```
 # reproduction of https://en.wikipedia.org/wiki/Binary_search_algorithm#/media/File:Binary_search_tree_search_4.svg
 
@@ -227,7 +222,7 @@ line_width = 1.2 * fmt.standard_line_width
 s_lw = fmt.line_width(line_width)
 ```
 
-Auxiliary function to draw a circle with Latex annotation at (0, 0).
+Auxiliary function to draw a circle with Latex annotation at `(0, 0)`.
 ```
 fn = lambda expr: [
    stz.circle([0, 0], node_radius, s_lw),
@@ -328,7 +323,7 @@ connections = [
 ```
 
 Highlight the node that you care about by changing the TikZ formatting string for it.
-(Kind of low-level, but can be done).
+(Kind of low-level, but can be done by accessing directly the dictionary representations of the basic visual elements).
 ```
 nodes[-3][0]["tikz_str"] = fmt.combine_tikz_strs(
    [nodes[-3][0]["tikz_str"],
@@ -360,23 +355,23 @@ These are then passed in `draw_to_tikz_standalone` to specify the user-defined c
 name2color = {"mygreen": (2, 129, 0)}
 ```
 
-Grouping all the graphical elements of the figure.
+Grouping all the visual elements of the figure.
 This is really powerful in general, e.g., you can compute the coordinates of the group by simply doing `stz.bbox([nodes, connections, bboxes, labels])`.
 ```
 e = [nodes, connections, bboxes, labels]
 ```
 
 Finally, compile to TikZ, i.e., generate the TikZ code.
-If any user-defined colors are needed for the figure, they need to be defined through a string to rgb tuple dictionary passed to the function (i.e., `name2color`).
+If any user-defined colors are needed for the figure, they need to be defined through a string to RGB tuple dictionary passed to the function (i.e., `name2color`).
 ```
 stz.draw_to_tikz_standalone(e, "tree.tex", name2color)
 ```
 
-Two recurring patterns we have observed above is the creation of auxiliary functions that take arguments corresponding to some parametrization of a visual element and then return the visual element in the right place (e.g., `dashed_bbox` and `connect`) and functions that take existing visual elements and place them in the right place (often as a function of some parametrization, e.g., `place`.
+Two recurring patterns we have observed above are the creation of auxiliary functions that take arguments corresponding to some parametrization of a visual element and then return the visual element in the right place (e.g., `dashed_bbox` and `connect`) and functions that take existing visual elements and place them in the right place (often as a function of some parametrization, e.g., `place`.
 These functions could be very well present in the main library `sane_tikz`.
 The main deciding factor in developing a function in a user file or in a library file is its expected widespread use.
-If we expect a function to be useful in a wide variety of figures, then we include it in the main library.
-Otherwise, it is kept in the local file corresponding to the figure.
+If we expect a function to be useful for a wide variety of figures, then we include it in the main library.
+Otherwise, it is kept in the local file for the figure.
 
 Additional examples are available in the [examples](https://github.com/negrinho/sane_tikz/tree/master/examples) folder.
-Inspecting some of the intermediate state of the figures should also give insight about what each function accomplishes, both in terms of creating new visual elements and of moving existing elements to the right place.
+Inspecting the intermediate states of the figures should also give insight about what each function accomplishes, both in terms of creating new visual elements and of moving existing elements to the right place.
