@@ -1,5 +1,5 @@
-import sane_tikz as stz
-import formatting as fmt
+import sane_tikz.core as stz
+import sane_tikz.formatting as fmt
 
 horizontal_node_spacing = 2.0
 vertical_node_spacing = 0.8

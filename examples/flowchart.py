@@ -1,5 +1,5 @@
-import sane_tikz as stz
-import formatting as fmt
+import sane_tikz.core as stz
+import sane_tikz.formatting as fmt
 
 box_height = 1.0
 box_width = 1.6

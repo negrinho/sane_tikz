@@ -1,7 +1,7 @@
 # Figure 5 in https://arxiv.org/pdf/1909.13404.pdf (towards modular and programmable architecture search)
 
-import sane_tikz as stz
-import formatting as fmt
+import sane_tikz.core as stz
+import sane_tikz.formatting as fmt
 
 frame_height = 9.5
 frame_width = 10.0
@@ -248,14 +248,14 @@ def frame(frame_idx):
         stz.align_centers_vertically([[c3, c4], c2], 0)
 
         if frame_idx == 1:
-            stz.distribute_vertically_with_spacing(
-                [cc, [c2, c3, c4], o, c1], vertical_module_spacing)
+            stz.distribute_vertically_with_spacing([cc, [c2, c3, c4], o, c1],
+                                                   vertical_module_spacing)
             stz.align_centers_horizontally([cc, [c2, c3, c4], o, c1], 0)
             modules.extend([c1, o, c2, c3, c4, cc])
 
         else:
-            stz.distribute_vertically_with_spacing(
-                [cc, [c2, c3, c4], d, c1], vertical_module_spacing)
+            stz.distribute_vertically_with_spacing([cc, [c2, c3, c4], d, c1],
+                                                   vertical_module_spacing)
             stz.align_centers_horizontally([cc, [c2, c3, c4], d, c1], 0)
             modules.extend([c1, d, c2, c3, c4, cc])
 

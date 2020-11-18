@@ -1,7 +1,7 @@
 # answer to latex exchange question: https://tex.stackexchange.com/questions/528863/how-do-you-name-nodes-vertices-with-this-type-of-code/528885#528885
 
-import sane_tikz as stz
-import formatting as fmt
+import sane_tikz.core as stz
+import sane_tikz.formatting as fmt
 
 label_spacing = 0.25
 pentagon_radius = 1.2

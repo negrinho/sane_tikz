@@ -1,7 +1,7 @@
 # reproduction of https://en.wikipedia.org/wiki/Binary_search_algorithm#/media/File:Binary_search_tree_search_4.svg
 
-import sane_tikz as stz
-import formatting as fmt
+import sane_tikz.core as stz
+import sane_tikz.formatting as fmt
 
 node_radius = 0.30
 vertical_node_spacing = 1.4 * node_radius
@@ -67,7 +67,8 @@ for i in [8, 3, 10, 1, 6, 14, 4, 7, 13]:
         s = str(i)
     nodes.append(fn(s))
 stz.distribute_vertically_with_spacing(
-    [nodes[0:1], nodes[1:3], nodes[3:6], nodes[6:9]][::-1], vertical_node_spacing)
+    [nodes[0:1], nodes[1:3], nodes[3:6],
+     nodes[6:9]][::-1], vertical_node_spacing)
 
 place(nodes[1], [-1])
 place(nodes[2], [1])

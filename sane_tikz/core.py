@@ -2,7 +2,7 @@
 
 import math
 from copy import deepcopy
-from pprint import pprint
+# from pprint import pprint
 
 #### overview
 # - all angles in degrees unless stated otherwise.
@@ -1003,7 +1003,10 @@ def guidelines(top_left_cs, bottom_right_cs, spacing, tikz_str=""):
     ]
 
 
-def horizontal_ticks(start_cs, num_ticks, tick_spacing, tick_delta,
+def horizontal_ticks(start_cs,
+                     num_ticks,
+                     tick_spacing,
+                     tick_delta,
                      tikz_str=""):
     x, y = start_cs
     return [

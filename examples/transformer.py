@@ -1,5 +1,5 @@
-import sane_tikz as stz
-import formatting as fmt
+import sane_tikz.core as stz
+import sane_tikz.formatting as fmt
 import numpy as np
 import math
 

@@ -1,4 +1,4 @@
-import sane_tikz as stz
+import sane_tikz.core as stz
 
 label_spacing = 0.25
 tick_label_spacing = 0.25

@@ -1,7 +1,7 @@
 # Reproduction of Figure 1 (top left) https://arxiv.org/pdf/1906.08237.pdf
 
-import sane_tikz as stz
-import formatting as fmt
+import sane_tikz.core as stz
+import sane_tikz.formatting as fmt
 
 square_side = 0.85
 rectangle_width = 1.4
@@ -84,8 +84,7 @@ row2 = [m2] + hs1
 stz.distribute_horizontally_with_spacing([m1] + xs, horizontal_spacing)
 stz.distribute_horizontally_with_spacing([m2] + hs1, horizontal_spacing)
 stz.distribute_horizontally_with_spacing(hs2, horizontal_spacing)
-stz.distribute_vertically_with_spacing([row1, row2, hs2],
-                                       vertical_spacing)
+stz.distribute_vertically_with_spacing([row1, row2, hs2], vertical_spacing)
 stz.align_rights([row1, row2, hs2], 0)
 
 stz.place_above_and_align_to_the_center(x_out, hs2[2], vertical_spacing)

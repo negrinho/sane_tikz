@@ -1,7 +1,7 @@
 # answer to latex exchange question: https://tex.stackexchange.com/questions/528846/horizontal-bar-graph-with-pgfplot-and-equal-sized-ticks/529041#529041
 
-import sane_tikz as stz
-import formatting as fmt
+import sane_tikz.core as stz
+import sane_tikz.formatting as fmt
 
 large_data = [4, 2, 1, 1, 0, 5, 4, 2, 2, 0]
 large_label_strs = [

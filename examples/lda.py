@@ -1,7 +1,7 @@
 # reproduction of Figure 7 from http://www.jmlr.org/papers/volume3/blei03a/blei03a.pdf
 
-import sane_tikz as stz
-import formatting as fmt
+import sane_tikz.core as stz
+import sane_tikz.formatting as fmt
 
 node_radius = 0.35
 node_spacing = 2.4 * node_radius

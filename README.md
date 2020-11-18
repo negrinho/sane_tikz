@@ -4,6 +4,8 @@ I recommend using [VS Code](https://code.visualstudio.com) with
 If `sane_tikz` was useful for you to create figures for your paper, consider mentioning it in the acknowledgements and share it via an issue or email or on Twitter with the hashtag #sane_tikz.
 See [tutorial](tutorial.md) for a high-level description of the design decisions or dive right into the examples.
 
+```pip install sane_tikz```
+
 # Examples
 
 Check the [examples](https://github.com/negrinho/sane_tikz/blob/master/examples/):
