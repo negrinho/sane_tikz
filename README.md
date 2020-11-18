@@ -3,8 +3,7 @@ I recommend using [VS Code](https://code.visualstudio.com) with
 [LaTeX Workshop](https://marketplace.visualstudio.com/items?itemName=James-Yu.latex-workshop) for easily visualizing changes to figures. In preview mode, once you run the code to regenerate the tex file for the figure, the figure should update automatically in the pdf preview window.
 If `sane_tikz` was useful for you to create figures for your paper, consider mentioning it in the acknowledgements and share it via an issue or email or on Twitter with the hashtag #sane_tikz.
 See [tutorial](tutorial.md) for a high-level description of the design decisions or dive right into the examples.
-
-```pip install sane_tikz```
+Use `pip install sane_tikz` to install from PyPi and `git clone https://github.com/negrinho/sane_tikz && cd sane_tikz && pip install -e .` to install from the repo.
 
 # Examples
 
